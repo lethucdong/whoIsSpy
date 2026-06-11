@@ -27,7 +27,7 @@ const FEATURES = [
 ];
 
 const HOW_TO = [
-  { n: 1, t: "Mỗi người nhận một từ khóa bí mật", d: "Dân thường cùng một từ, gián điệp nhận từ khác nhưng liên quan, người mù chẳng có gì cả." },
+  { n: 1, t: "Mỗi người nhận một từ khóa bí mật", d: "Dân thường cùng một từ, gián điệp nhận từ khác nhưng có liên quan." },
   { n: 2, t: "Lần lượt mô tả từ của mình", d: "Nói khéo để đồng đội hiểu nhưng đừng để lộ cho gián điệp." },
   { n: 3, t: "Bỏ phiếu loại kẻ khả nghi", d: "Sau mỗi vòng thảo luận, cả phòng vote người bị nghi là gián điệp." },
   { n: 4, t: "Tìm ra gián điệp để thắng", d: "Dân thắng khi loại hết gián điệp. Gián điệp thắng nếu trụ tới cuối." },
@@ -35,7 +35,6 @@ const HOW_TO = [
 
 const MODES = [
   { emoji: "🎯", t: "Cổ điển", d: "1 gián điệp ẩn mình giữa đám đông." },
-  { emoji: "🕶️", t: "Người mù", d: "Thêm người mù không có từ khóa, tăng độ khó." },
   { emoji: "👥", t: "Đa gián điệp", d: "Nhiều gián điệp bắt tay nhau lật kèo." },
   { emoji: "⚡", t: "Tốc chiến", d: "Thời gian ngắn, quyết định nhanh." },
 ];
@@ -44,7 +43,6 @@ const FAQ = [
   { q: "Có cần tải ứng dụng không?", a: "Không. Chơi trực tiếp trên trình duyệt điện thoại hoặc máy tính." },
   { q: "Tối thiểu mấy người chơi được?", a: "Từ 3 người trở lên. Đông hơn sẽ càng vui và khó đoán." },
   { q: "Gián điệp khác dân thường thế nào?", a: "Gián điệp nhận một từ khóa khác nhưng có liên quan, nên phải mô tả thật mượt để không bị lộ." },
-  { q: "Người mù là gì?", a: "Người mù không nhận từ khóa nào, chỉ thấy dấu '???' và phải suy luận qua lời người khác." },
 ];
 
 export default function HomePage() {

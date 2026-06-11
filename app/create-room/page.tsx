@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Users, UserRoundX, Eye, MessagesSquare, Vote, Loader2, Rocket } from "lucide-react";
+import { Users, UserRoundX, MessagesSquare, Vote, Loader2, Rocket } from "lucide-react";
 import { TopBar, Screen } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "@/components/ui/stepper";
@@ -34,7 +34,6 @@ export default function CreateRoomPage() {
     setSettings((s) => ({ ...s, ...patch }));
 
   const maxSpy = Math.max(1, Math.floor(settings.maxPlayers / 2));
-  const maxBlind = Math.max(0, settings.maxPlayers - settings.spyCount - 1);
 
   const handleCreate = () => {
     if (!socket || !player) return;
@@ -46,7 +45,6 @@ export default function CreateRoomPage() {
     const safe: RoomSettings = {
       ...settings,
       spyCount: Math.min(settings.spyCount, maxSpy),
-      blindCount: Math.min(settings.blindCount, maxBlind),
     };
     socket.emit(
       EV.ROOM_CREATE,
@@ -99,25 +97,15 @@ export default function CreateRoomPage() {
             />
           </Field>
 
-          {/* Gián điệp & người mù */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field icon={UserRoundX} label="Gián điệp">
-              <Stepper
-                value={settings.spyCount}
-                onChange={(v) => set({ spyCount: v })}
-                min={1}
-                max={maxSpy}
-              />
-            </Field>
-            <Field icon={Eye} label="Người mù">
-              <Stepper
-                value={settings.blindCount}
-                onChange={(v) => set({ blindCount: v })}
-                min={0}
-                max={maxBlind}
-              />
-            </Field>
-          </div>
+          {/* Gián điệp */}
+          <Field icon={UserRoundX} label="Số gián điệp">
+            <Stepper
+              value={settings.spyCount}
+              onChange={(v) => set({ spyCount: v })}
+              min={1}
+              max={maxSpy}
+            />
+          </Field>
 
           {/* Thời gian */}
           <div className="grid grid-cols-2 gap-3">

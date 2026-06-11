@@ -11,7 +11,6 @@ import {
   Play,
   Users,
   UserRoundX,
-  Eye,
   Clock,
   WifiOff,
   Settings2,
@@ -108,10 +107,9 @@ export default function RoomPage() {
         </motion.div>
 
         {/* Thiết lập hiện tại */}
-        <div className="mb-4 grid grid-cols-4 gap-2">
+        <div className="mb-4 grid grid-cols-3 gap-2">
           <Stat icon={Users} value={`${s.maxPlayers}`} label="Tối đa" />
           <Stat icon={UserRoundX} value={`${s.spyCount}`} label="Gián điệp" />
-          <Stat icon={Eye} value={`${s.blindCount}`} label="Người mù" />
           <Stat icon={Clock} value={`${s.discussSeconds}s`} label="Thảo luận" />
         </div>
         <div className="mb-5 flex items-center gap-2 rounded-xl border border-border bg-card-soft/30 px-3 py-2 text-xs text-muted">

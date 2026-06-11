@@ -416,12 +416,10 @@ function ResultPhase({
               className={`mt-3 flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${
                 r.eliminatedRole === "SPY"
                   ? "bg-danger/20 text-red-400"
-                  : r.eliminatedRole === "BLIND"
-                  ? "bg-purple-500/20 text-purple-300"
                   : "bg-primary/20 text-primary-soft"
               }`}
             >
-              {r.eliminatedRole === "SPY" ? "🕵️" : r.eliminatedRole === "BLIND" ? "🕶️" : "👤"}
+              {r.eliminatedRole === "SPY" ? "🕵️" : "👤"}
               {r.eliminatedRole ? ROLE_LABEL[r.eliminatedRole] : ""}
               {r.eliminatedRole === "SPY" && " — Bắt trúng rồi!"}
             </div>
@@ -562,19 +560,11 @@ function EndedPhase({
                     {p.id === meId && <span className="text-faint"> (bạn)</span>}
                   </span>
                   <span className="truncate text-xs text-muted">
-                    {p.role === "BLIND" ? "Không có từ khóa" : `🗝️ ${p.word ?? "—"}`}
+                    {`🗝️ ${p.word ?? "—"}`}
                   </span>
                 </div>
-                <Badge
-                  variant={
-                    p.role === "SPY"
-                      ? "danger"
-                      : p.role === "BLIND"
-                      ? "default"
-                      : "muted"
-                  }
-                >
-                  {p.role === "SPY" ? "🕵️ Gián điệp" : p.role === "BLIND" ? "🕶️ Người mù" : "👤 Dân"}
+                <Badge variant={p.role === "SPY" ? "danger" : "muted"}>
+                  {p.role === "SPY" ? "🕵️ Gián điệp" : "👤 Dân"}
                 </Badge>
               </div>
             ))}
