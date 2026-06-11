@@ -31,16 +31,11 @@ export function SecretChip({
     timer.current = setTimeout(() => setShow(false), 3000);
   };
 
-  const emoji =
-    role === "BLIND"
-      ? "❓"
-      : CATEGORIES.find((c) => c.id === category)?.emoji ?? "🗝️";
-  const display = role === "BLIND" ? "???" : word ?? "???";
+  const emoji = CATEGORIES.find((c) => c.id === category)?.emoji ?? "🗝️";
+  const display = word ?? "???";
   const tone =
     role === "SPY"
       ? "border-danger/40 text-red-400"
-      : role === "BLIND"
-      ? "border-purple-500/40 text-purple-300"
       : "border-primary/40 text-primary-soft";
 
   return (

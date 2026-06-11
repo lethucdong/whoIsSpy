@@ -47,23 +47,13 @@ const ROLE_THEME: Record<Role, CardTheme> = {
     label: "Gián Điệp",
     sub: "Hãy hòa nhập, đừng để lộ thân phận!",
   },
-  BLIND: {
-    glow: "shadow-[0_0_60px_-10px_rgba(168,85,247,0.7)]",
-    ring: "ring-purple-500/50",
-    chip: "bg-purple-500/20 text-purple-300",
-    label: "Người Mù",
-    sub: "Bạn không có từ khóa — hãy suy luận!",
-  },
 };
 
 export function RoleCard({ role, word, category, onRevealed }: RoleCardProps) {
   const [flipped, setFlipped] = useState(false);
   const theme = role ? ROLE_THEME[role] : NEUTRAL_THEME;
-  const emoji =
-    role === "BLIND"
-      ? "❓"
-      : CATEGORIES.find((c) => c.id === category)?.emoji ?? "🗝️";
-  const display = role === "BLIND" ? "???" : word ?? "???";
+  const emoji = CATEGORIES.find((c) => c.id === category)?.emoji ?? "🗝️";
+  const display = word ?? "???";
 
   const handleFlip = () => {
     if (flipped) return;
@@ -111,11 +101,7 @@ export function RoleCard({ role, word, category, onRevealed }: RoleCardProps) {
                 "flex h-full w-full flex-col items-center justify-center gap-4 rounded-[2rem] border-2 bg-card ring-2",
                 theme.glow,
                 theme.ring,
-                role === "SPY"
-                  ? "border-danger/40"
-                  : role === "BLIND"
-                  ? "border-purple-500/40"
-                  : "border-primary/40"
+                role === "SPY" ? "border-danger/40" : "border-primary/40"
               )}
             >
               <span

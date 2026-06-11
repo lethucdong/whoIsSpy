@@ -13,6 +13,7 @@ export const SOCKET_EVENTS = {
   NEXT_SPEAKER: "game:nextSpeaker",
   SKIP_TO_VOTE: "game:skipToVote",
   VOTE_CAST: "vote:cast",
+  VOTE_SKIP: "vote:skip",
   NEXT_ROUND: "game:nextRound",
   RESET_LOBBY: "game:resetLobby",
 

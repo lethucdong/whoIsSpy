@@ -15,6 +15,7 @@ import {
   Trophy,
   Skull,
   PartyPopper,
+  Ban,
 } from "lucide-react";
 import { Screen } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ import { PlayerRoster } from "@/components/game/player-roster";
 import { useRoom } from "@/lib/use-room";
 import { useCountdown } from "@/lib/use-countdown";
 import { recordHistory } from "@/lib/use-history";
-import { ROLE_LABEL, RoomState } from "@/lib/types";
+import { ROLE_LABEL, RoomState, SKIP_VOTE } from "@/lib/types";
 
 export default function GamePage() {
   const { id } = useParams<{ id: string }>();
@@ -293,10 +294,13 @@ function VotePhase({
 }) {
   const meId = me.id;
   const remaining = useCountdown(room.phaseEndsAt);
-  const myVote = room.votes?.find((v) => v.voterId === meId)?.targetId ?? null;
+  const myDecision = room.votes?.find((v) => v.voterId === meId)?.targetId ?? null;
+  const abstained = myDecision === SKIP_VOTE;
+  const myVote = abstained ? null : myDecision;
 
   const counts: Record<string, number> = {};
   room.votes?.forEach((v) => {
+    if (v.targetId === SKIP_VOTE) return; // phiếu bỏ qua không hiện cho ai
     counts[v.targetId] = (counts[v.targetId] ?? 0) + 1;
   });
   const votedCount = room.votes?.length ?? 0;
@@ -325,7 +329,7 @@ function VotePhase({
         </h2>
         <p className="mt-1 text-center text-sm text-muted">
           {me?.alive
-            ? "Chạm vào người bạn nghi ngờ nhất"
+            ? "Chạm vào người bạn nghi ngờ — hoặc bỏ qua"
             : "Bạn đã bị loại — chờ kết quả"}
         </p>
       </div>
@@ -342,21 +346,38 @@ function VotePhase({
       </div>
 
       <div className="safe-bottom px-4 pb-3 pt-4">
-        {myVote ? (
-          <div className="glass flex items-center justify-center gap-2 rounded-2xl py-4 text-sm">
-            <span className="text-muted">Bạn đã bỏ phiếu cho</span>
-            <b className="text-red-400">
-              {room.players.find((p) => p.id === myVote)?.name}
-            </b>
-            <span className="text-faint">— có thể đổi</span>
-          </div>
-        ) : me?.alive ? (
-          <p className="text-center text-sm text-faint">
-            👆 Chọn một người để bỏ phiếu
-          </p>
-        ) : (
+        {!me?.alive ? (
           <div className="glass flex items-center justify-center gap-2 rounded-2xl py-4 text-sm text-muted">
             <Loader2 className="h-4 w-4 animate-spin" /> Đang chờ kết quả...
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {abstained ? (
+              <div className="glass flex items-center justify-center gap-2 rounded-2xl py-3 text-sm">
+                <Ban className="h-4 w-4 text-faint" />
+                <span className="text-muted">Bạn đã chọn không bỏ phiếu</span>
+                <span className="text-faint">— có thể đổi</span>
+              </div>
+            ) : myVote ? (
+              <div className="glass flex items-center justify-center gap-2 rounded-2xl py-3 text-sm">
+                <span className="text-muted">Bạn đã bỏ phiếu cho</span>
+                <b className="text-red-400">
+                  {room.players.find((p) => p.id === myVote)?.name}
+                </b>
+                <span className="text-faint">— có thể đổi</span>
+              </div>
+            ) : (
+              <p className="text-center text-sm text-faint">
+                👆 Chọn một người để bỏ phiếu, hoặc bỏ qua
+              </p>
+            )}
+            <Button
+              variant={abstained ? "primary" : "glass"}
+              className="w-full"
+              onClick={actions.skipVote}
+            >
+              <Ban className="h-5 w-5" /> Không bỏ phiếu
+            </Button>
           </div>
         )}
       </div>

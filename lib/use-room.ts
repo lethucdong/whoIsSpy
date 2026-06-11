@@ -59,6 +59,7 @@ export function useRoom(code?: string) {
     nextSpeaker: () => emit(EV.NEXT_SPEAKER),
     skipToVote: () => emit(EV.SKIP_TO_VOTE),
     vote: (targetId: string) => emit(EV.VOTE_CAST, targetId),
+    skipVote: () => emit(EV.VOTE_SKIP),
     nextRound: () => emit(EV.NEXT_ROUND),
     resetLobby: () => emit(EV.RESET_LOBBY),
     leave: () => emit(EV.ROOM_LEAVE),

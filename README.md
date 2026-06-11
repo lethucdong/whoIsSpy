@@ -9,8 +9,8 @@ Phiên bản web multiplayer hiện đại của trò chơi suy luận "Ai Là G
 - 🎮 Tạo phòng, vào phòng bằng mã 5 ký tự, chia sẻ link mời
 - ⚡ Realtime với **Socket.io** — danh sách người chơi, thảo luận, bỏ phiếu cập nhật tức thì
 - 🃏 Màn **lật thẻ** với hiệu ứng flip / blur / glow / scale
-- 🎭 3 vai trò: **Dân Thường**, **Gián Điệp**, **Người Mù** (`???`)
-- ⚙️ Tùy chỉnh số người, số gián điệp, số người mù, thời gian, chủ đề, độ khó
+- 🎭 2 vai trò: **Dân Thường**, **Gián Điệp**
+- ⚙️ Tùy chỉnh số người, số gián điệp, thời gian, chủ đề, độ khó
 - 📚 Hơn 200 cặp từ khóa tiếng Việt qua 18 danh mục, 3 mức độ khó
 - 📊 Lịch sử & thống kê cá nhân
 - 🌙 Dark mode + Glassmorphism (phong cách Discord / Spotify / Linear)

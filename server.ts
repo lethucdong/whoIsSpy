@@ -115,6 +115,11 @@ app.prepare().then(() => {
       if (roomCode) engine.castVote(roomCode, playerId, targetId);
     });
 
+    socket.on(EV.VOTE_SKIP, () => {
+      const { roomCode, playerId } = socket.data;
+      if (roomCode) engine.skipVote(roomCode, playerId);
+    });
+
     socket.on(EV.ROOM_LEAVE, () => {
       const { roomCode, playerId } = socket.data;
       if (roomCode) {

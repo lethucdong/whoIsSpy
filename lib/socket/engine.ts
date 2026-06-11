@@ -8,6 +8,7 @@ import {
   RoomSettings,
   RoomState,
   PlayerState,
+  SKIP_VOTE,
 } from "@/lib/types";
 import { pickRandomPair } from "@/lib/keywords";
 
@@ -168,10 +169,6 @@ export class GameEngine {
       Math.max(1, room.settings.spyCount),
       Math.max(1, Math.floor(n / 2))
     );
-    room.settings.blindCount = Math.min(
-      Math.max(0, room.settings.blindCount),
-      Math.max(0, n - room.settings.spyCount - 1)
-    );
   }
 
   // ----- Vòng chơi -----
@@ -210,10 +207,6 @@ export class GameEngine {
     const players = room.players;
     const n = players.length;
     const spyCount = Math.min(room.settings.spyCount, Math.floor(n / 2) || 1);
-    const blindCount = Math.min(
-      room.settings.blindCount,
-      Math.max(0, n - spyCount - 1)
-    );
 
     const indices = players.map((_, i) => i);
     // Trộn Fisher-Yates
@@ -223,7 +216,6 @@ export class GameEngine {
     }
 
     const spySet = new Set(indices.slice(0, spyCount));
-    const blindSet = new Set(indices.slice(spyCount, spyCount + blindCount));
 
     players.forEach((p, i) => {
       p.alive = true;
@@ -231,9 +223,6 @@ export class GameEngine {
       if (spySet.has(i)) {
         p.role = "SPY";
         p.word = room.spyWord;
-      } else if (blindSet.has(i)) {
-        p.role = "BLIND";
-        p.word = null;
       } else {
         p.role = "CIVILIAN";
         p.word = room.civilianWord;
@@ -316,8 +305,21 @@ export class GameEngine {
     const voter = room.players.find((p) => p.id === voterId);
     const target = room.players.find((p) => p.id === targetId);
     if (!voter || !voter.alive || !target || !target.alive) return;
-    room.votes.set(voterId, targetId);
+    this.recordVote(room, voterId, targetId);
+  }
 
+  // Người chơi chủ động chọn KHÔNG bỏ phiếu (bỏ qua) — vẫn tính là đã quyết
+  // định để lượt vote có thể kết thúc, nhưng không cộng phiếu cho ai.
+  skipVote(code: string, voterId: string) {
+    const room = this.getRoom(code);
+    if (!room || room.phase !== "VOTE") return;
+    const voter = room.players.find((p) => p.id === voterId);
+    if (!voter || !voter.alive) return;
+    this.recordVote(room, voterId, SKIP_VOTE);
+  }
+
+  private recordVote(room: InternalRoom, voterId: string, targetId: string) {
+    room.votes.set(voterId, targetId);
     const aliveCount = room.players.filter((p) => p.alive).length;
     if (room.votes.size >= aliveCount) {
       this.tallyVotes(room);
@@ -330,6 +332,7 @@ export class GameEngine {
     this.clearTimer(room);
     const counts = new Map<string, number>();
     room.votes.forEach((targetId) => {
+      if (targetId === SKIP_VOTE) return; // phiếu bỏ qua không tính cho ai
       counts.set(targetId, (counts.get(targetId) ?? 0) + 1);
     });
 

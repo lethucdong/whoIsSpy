@@ -19,7 +19,7 @@ Tài liệu này tổng hợp 18 đầu mục output theo yêu cầu.
 6. **Bỏ phiếu** loại người khả nghi.
 7. **Kết quả** vòng → kiểm tra điều kiện thắng → chơi tiếp hoặc kết thúc.
 
-**Vai trò:** Dân Thường (từ chính) · Gián Điệp (từ khác nhưng liên quan) · Người Mù (không có từ, hiện `???`).
+**Vai trò:** Dân Thường (từ chính) · Gián Điệp (từ khác nhưng liên quan).
 
 **Điều kiện thắng:** Dân thắng khi loại hết gián điệp; Gián điệp thắng khi số gián điệp còn sống ≥ số người còn lại không phải gián điệp.
 
@@ -115,7 +115,7 @@ Trò chơi realtime dùng **Socket.io** (độ trễ thấp) thay cho Server Act
 - `upsertUserStats(userId)` — cập nhật `gamesPlayed/Won/spyGames/spyWins`.
 - `seedKeywords()` — nạp `KeywordPair` (xem `prisma/seed.ts`).
 
-Validate bằng **Zod** (schema settings: `maxPlayers 3–16`, `spyCount ≥1`, `blindCount ≥0`, `discussSeconds 30–300`, `voteSeconds 15–120`).
+Validate bằng **Zod** (schema settings: `maxPlayers 3–16`, `spyCount ≥1`, `discussSeconds 30–300`, `voteSeconds 15–120`).
 
 ---
 
@@ -167,7 +167,7 @@ HOME            CREATE              ROOM/LOBBY          GAME/REVEAL
 │   🕵️     │    │ ‹ Tạo P. │        │‹ Phòng  ⤴│        │ Vòng 1   │
 │ AI LÀ    │    │ [host]   │        │  ABCDE   │        │ Xem từ   │
 │ GIÁN ĐIỆP│    │ Người [8]│        │ ▢▢▢▢ stat│        │ ┌──────┐ │
-│ [Tạo P.] │    │ Spy[1]Mù0│        │ • P1 host│        │ │ 🃏   │ │
+│ [Tạo P.] │    │ Spy [1]  │        │ • P1 host│        │ │ 🃏   │ │
 │ [Vào P.] │    │ Time ... │        │ • P2  ✓  │        │ │ chạm │ │
 │ tính năng│    │ chủ đề   │        │ • P3 ...│        │ └──────┘ │
 │ cách chơi│    │ ─────────│        │ ─────────│        │ ──────── │

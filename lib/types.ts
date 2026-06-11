@@ -1,6 +1,9 @@
 // Kiểu dữ liệu dùng chung giữa client & socket server.
 
-export type Role = "CIVILIAN" | "SPY" | "BLIND";
+export type Role = "CIVILIAN" | "SPY";
+
+// Giá trị đặc biệt cho lá phiếu "không bỏ phiếu" (bỏ qua / abstain).
+export const SKIP_VOTE = "__SKIP__";
 
 export type GamePhase =
   | "LOBBY"
@@ -21,7 +24,6 @@ export interface PlayerIdentity {
 export interface RoomSettings {
   maxPlayers: number;
   spyCount: number;
-  blindCount: number;
   discussSeconds: number;
   voteSeconds: number;
   category: string; // "ALL" hoặc tên danh mục
@@ -84,7 +86,6 @@ export interface RoomState {
 export const DEFAULT_SETTINGS: RoomSettings = {
   maxPlayers: 8,
   spyCount: 1,
-  blindCount: 0,
   discussSeconds: 120,
   voteSeconds: 30,
   category: "ALL",
@@ -94,5 +95,4 @@ export const DEFAULT_SETTINGS: RoomSettings = {
 export const ROLE_LABEL: Record<Role, string> = {
   CIVILIAN: "Dân Thường",
   SPY: "Gián Điệp",
-  BLIND: "Người Mù",
 };
