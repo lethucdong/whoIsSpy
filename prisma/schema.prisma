@@ -1,0 +1,208 @@
+// Prisma schema cho "AI Là Gián Điệp?"
+// Dùng UUID, có đầy đủ index. Tầng lưu trữ cho hồ sơ, lịch sử & thống kê.
+// Lưu ý: vòng chơi realtime chạy in-memory trên socket server (engine.ts);
+// các bảng dưới đây dùng để persist kết quả/thống kê (tùy chọn, cần DATABASE_URL).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CIVILIAN
+  SPY
+  BLIND
+}
+
+enum GamePhase {
+  LOBBY
+  REVEAL
+  DISCUSS
+  VOTE
+  RESULT
+  ENDED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum WinnerSide {
+  CIVILIAN
+  SPY
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  avatar    String   @default("🦊")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Thống kê
+  gamesPlayed Int @default(0)
+  gamesWon    Int @default(0)
+  spyGames    Int @default(0)
+  spyWins     Int @default(0)
+
+  roomsOwned  Room[]        @relation("RoomHost")
+  memberships RoomPlayer[]
+  roles       PlayerRole[]
+  votesCast   Vote[]        @relation("Voter")
+  votesGot    Vote[]        @relation("Target")
+
+  @@index([name])
+  @@index([createdAt])
+}
+
+model Room {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  hostId    String
+  host      User      @relation("RoomHost", fields: [hostId], references: [id])
+  phase     GamePhase @default(LOBBY)
+
+  // Cấu hình luật chơi
+  maxPlayers     Int        @default(8)
+  spyCount       Int        @default(1)
+  blindCount     Int        @default(0)
+  discussSeconds Int        @default(120)
+  voteSeconds    Int        @default(30)
+  category       String     @default("ALL")
+  difficulty     Difficulty @default(EASY)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  closedAt  DateTime?
+
+  players RoomPlayer[]
+  games   Game[]
+
+  @@index([code])
+  @@index([hostId])
+  @@index([phase])
+  @@index([createdAt])
+}
+
+model RoomPlayer {
+  id       String   @id @default(uuid())
+  roomId   String
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  isHost   Boolean  @default(false)
+  ready    Boolean  @default(false)
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+}
+
+model Game {
+  id        String     @id @default(uuid())
+  roomId    String
+  room      Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  keywordId String?
+  keyword   KeywordPair? @relation(fields: [keywordId], references: [id])
+
+  civilianWord String
+  spyWord      String
+  winner       WinnerSide?
+  totalRounds  Int         @default(0)
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  rounds  Round[]
+  roles   PlayerRole[]
+  events  GameEvent[]
+
+  @@index([roomId])
+  @@index([keywordId])
+  @@index([startedAt])
+}
+
+model Round {
+  id            String   @id @default(uuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  number        Int
+  eliminatedId  String?
+  tie           Boolean  @default(false)
+  startedAt     DateTime @default(now())
+  endedAt       DateTime?
+
+  votes Vote[]
+
+  @@unique([gameId, number])
+  @@index([gameId])
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  roundId   String
+  round     Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  voterId   String
+  voter     User     @relation("Voter", fields: [voterId], references: [id])
+  targetId  String
+  target    User     @relation("Target", fields: [targetId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([roundId, voterId])
+  @@index([roundId])
+  @@index([voterId])
+  @@index([targetId])
+}
+
+model PlayerRole {
+  id      String  @id @default(uuid())
+  gameId  String
+  game    Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User    @relation(fields: [userId], references: [id])
+  role    Role
+  word    String?
+  alive   Boolean @default(true)
+  survived Boolean @default(false)
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
+  @@index([role])
+}
+
+model KeywordPair {
+  id         String     @id @default(uuid())
+  civilian   String
+  spy        String
+  category   String
+  difficulty Difficulty @default(EASY)
+  createdAt  DateTime   @default(now())
+
+  games Game[]
+
+  @@unique([civilian, spy])
+  @@index([category])
+  @@index([difficulty])
+}
+
+model GameEvent {
+  id        String   @id @default(uuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type      String // ROLE_ASSIGNED, REVEAL, DISCUSS_START, VOTE_START, ELIMINATE, ROUND_END, GAME_END
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([gameId])
+  @@index([type])
+  @@index([createdAt])
+}

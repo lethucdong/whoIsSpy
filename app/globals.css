@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* =========================================================
+   AI LÀ GIÁN ĐIỆP? — Design System
+   Dark mode • Glassmorphism • Gaming UI (Discord / Linear / Spotify)
+   Mobile-first
+   ========================================================= */
+
+@theme {
+  --color-bg: #0f172a;
+  --color-bg-soft: #131c31;
+  --color-card: #1e293b;
+  --color-card-soft: #243149;
+  --color-border: #334155;
+
+  --color-primary: #6366f1;
+  --color-primary-soft: #818cf8;
+  --color-primary-dark: #4f46e5;
+
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #38bdf8;
+
+  --color-text: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-faint: #64748b;
+
+  --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  --radius-xl2: 1.5rem;
+
+  --shadow-glow: 0 0 0 1px rgba(99, 102, 241, 0.3),
+    0 8px 30px -6px rgba(99, 102, 241, 0.45);
+  --shadow-card: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulseGlow 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+  50% { box-shadow: 0 0 0 14px rgba(99, 102, 241, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  /* Ánh sáng nền dạng aurora */
+  background-image:
+    radial-gradient(60% 40% at 80% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
+    radial-gradient(50% 40% at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+    radial-gradient(40% 30% at 50% 110%, rgba(168, 85, 247, 0.14), transparent 60%);
+  background-attachment: fixed;
+}
+
+/* Vùng an toàn cho tai thỏ / thanh điều hướng iOS */
+.safe-top { padding-top: max(env(safe-area-inset-top), 0.5rem); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }
+
+/* Khung kính */
+.glass {
+  background: linear-gradient(
+    160deg,
+    rgba(30, 41, 59, 0.85),
+    rgba(19, 28, 49, 0.72)
+  );
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.glass-strong {
+  background: rgba(30, 41, 59, 0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.text-gradient {
+  background: linear-gradient(120deg, #818cf8, #c4b5fd 40%, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #94a3b8 0%,
+    #f8fafc 20%,
+    #94a3b8 40%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer);
+}
+
+/* Thanh cuộn mảnh */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Ẩn spin của input number */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Lưới chấm trang trí */
+.dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
