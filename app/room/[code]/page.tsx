@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ShareSheet } from "@/components/game/share-sheet";
+import { CommsDock } from "@/components/game/comms-dock";
 import { useRoom } from "@/lib/use-room";
 import { CATEGORIES } from "@/lib/keywords/data";
 
@@ -224,6 +225,15 @@ export default function RoomPage() {
           </Button>
         )}
       </div>
+
+      {me && (
+        <CommsDock
+          room={room}
+          meId={me.id}
+          meName={me.name}
+          meAvatar={me.avatar}
+        />
+      )}
     </>
   );
 }

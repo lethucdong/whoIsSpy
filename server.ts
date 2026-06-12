@@ -62,6 +62,7 @@ app.prepare().then(() => {
       join(code, payload.player);
       cb?.({ ok: true, code });
       emitState(code);
+      socket.emit(EV.CHAT_HISTORY, engine.getMessages(code));
     });
 
     socket.on(EV.ROOM_JOIN, (payload: { code: string; player: PlayerInput }, cb?: (r: any) => void) => {
@@ -74,6 +75,7 @@ app.prepare().then(() => {
       join(payload.code, payload.player);
       cb?.({ ok: true, code: payload.code.toUpperCase() });
       emitState(payload.code);
+      socket.emit(EV.CHAT_HISTORY, engine.getMessages(payload.code));
     });
 
     const withRoom = (fn: (code: string, playerId: string) => void) => () => {
@@ -123,14 +125,72 @@ app.prepare().then(() => {
     socket.on(EV.ROOM_LEAVE, () => {
       const { roomCode, playerId } = socket.data;
       if (roomCode) {
+        leaveCall();
         engine.leaveRoom(roomCode, playerId);
         socket.leave(`room:${roomCode}`);
         emitState(roomCode);
       }
     });
 
+    // ----- Chat -----
+    socket.on(EV.CHAT_SEND, (payload: { text: string }) => {
+      const { roomCode, playerId } = socket.data;
+      if (!roomCode || !playerId) return;
+      const msg = engine.addChatMessage(roomCode, playerId, payload?.text ?? "");
+      if (msg) io.to(`room:${roomCode}`).emit(EV.CHAT_NEW, msg);
+    });
+
+    // ----- Video call (WebRTC mesh signaling) -----
+    // Mỗi socket tự nằm trong "room" theo socket.id, nên io.to(id) gửi đúng đích.
+    const callRoom = () => `call:${socket.data.roomCode}`;
+
+    const leaveCall = () => {
+      if (!socket.data.roomCode || !socket.data.inCall) return;
+      socket.data.inCall = false;
+      socket.to(callRoom()).emit(EV.RTC_PEER_LEFT, { id: socket.id });
+      socket.leave(callRoom());
+    };
+
+    socket.on(EV.RTC_JOIN, async (cb?: (peers: { id: string; playerId: string }[]) => void) => {
+      const { roomCode, playerId } = socket.data;
+      if (!roomCode || !playerId) {
+        cb?.([]);
+        return;
+      }
+      const room = callRoom();
+      const existing = await io.in(room).fetchSockets();
+      const peers = existing
+        .filter((s) => s.id !== socket.id)
+        .map((s) => ({ id: s.id, playerId: (s.data as any).playerId as string }));
+      socket.join(room);
+      socket.data.inCall = true;
+      // Báo những người đang gọi biết có người mới (họ sẽ chờ offer từ người mới).
+      socket.to(room).emit(EV.RTC_PEER_JOINED, { id: socket.id, playerId });
+      // Người mới nhận danh sách peer hiện có để chủ động tạo offer.
+      cb?.(peers);
+    });
+
+    socket.on(EV.RTC_LEAVE, () => leaveCall());
+
+    socket.on(EV.RTC_OFFER, (p: { to: string; sdp: unknown }) => {
+      io.to(p.to).emit(EV.RTC_OFFER, {
+        from: socket.id,
+        playerId: socket.data.playerId,
+        sdp: p.sdp,
+      });
+    });
+
+    socket.on(EV.RTC_ANSWER, (p: { to: string; sdp: unknown }) => {
+      io.to(p.to).emit(EV.RTC_ANSWER, { from: socket.id, sdp: p.sdp });
+    });
+
+    socket.on(EV.RTC_ICE, (p: { to: string; candidate: unknown }) => {
+      io.to(p.to).emit(EV.RTC_ICE, { from: socket.id, candidate: p.candidate });
+    });
+
     socket.on("disconnect", () => {
       const { roomCode, playerId } = socket.data;
+      leaveCall();
       if (roomCode && playerId) {
         engine.setConnected(roomCode, playerId, false);
         emitState(roomCode);

@@ -25,6 +25,7 @@ import { RoleCard } from "@/components/game/role-card";
 import { SecretChip } from "@/components/game/secret-chip";
 import { PhaseTimer } from "@/components/game/phase-timer";
 import { PlayerRoster } from "@/components/game/player-roster";
+import { CommsDock } from "@/components/game/comms-dock";
 import { useRoom } from "@/lib/use-room";
 import { useCountdown } from "@/lib/use-countdown";
 import { recordHistory } from "@/lib/use-history";
@@ -98,6 +99,16 @@ export default function GamePage() {
           <EndedPhase key="ended" room={room} meId={me.id} isHost={isHost} actions={actions} router={router} />
         )}
       </AnimatePresence>
+
+      {/* Chat & gọi video nhóm — ẩn ở màn kết thúc */}
+      {room.phase !== "ENDED" && (
+        <CommsDock
+          room={room}
+          meId={me.id}
+          meName={me.name}
+          meAvatar={me.avatar}
+        />
+      )}
     </div>
   );
 }

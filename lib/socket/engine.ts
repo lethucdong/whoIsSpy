@@ -8,6 +8,7 @@ import {
   RoomSettings,
   RoomState,
   PlayerState,
+  ChatMessage,
   SKIP_VOTE,
 } from "@/lib/types";
 import { pickRandomPair } from "@/lib/keywords";
@@ -36,7 +37,10 @@ interface InternalRoom {
   lastResult: RoomState["lastResult"];
   winInfo: RoomState["winInfo"];
   timer: NodeJS.Timeout | null;
+  messages: ChatMessage[];
 }
+
+const MAX_CHAT_HISTORY = 80;
 
 type BroadcastFn = (code: string) => void;
 
@@ -81,6 +85,7 @@ export class GameEngine {
       lastResult: null,
       winInfo: null,
       timer: null,
+      messages: [],
     };
     this.rooms.set(room.code, room);
     this.addPlayer(room, host, true);
@@ -456,6 +461,44 @@ export class GameEngine {
       p.ready = p.isHost;
     });
     this.broadcast(room.code);
+  }
+
+  // ----- Chat -----
+
+  /** Thêm một tin nhắn vào phòng, trả về tin đã chuẩn hóa (kèm tên/avatar). */
+  addChatMessage(
+    code: string,
+    playerId: string,
+    text: string
+  ): ChatMessage | null {
+    const room = this.getRoom(code);
+    if (!room) return null;
+    const sender = room.players.find((p) => p.id === playerId);
+    if (!sender) return null;
+
+    const clean = text.trim().slice(0, 500);
+    if (!clean) return null;
+
+    const msg: ChatMessage = {
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      playerId: sender.id,
+      name: sender.name,
+      avatar: sender.avatar,
+      text: clean,
+      ts: Date.now(),
+    };
+    room.messages.push(msg);
+    if (room.messages.length > MAX_CHAT_HISTORY) {
+      room.messages.splice(0, room.messages.length - MAX_CHAT_HISTORY);
+    }
+    return msg;
+  }
+
+  getMessages(code: string): ChatMessage[] {
+    return this.getRoom(code)?.messages ?? [];
   }
 
   // ----- Tiện ích -----

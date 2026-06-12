@@ -32,6 +32,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  // Khi bàn phím ảo mở, thu nhỏ vùng layout để ô nhập chat (fixed bottom)
+  // nổi lên trên bàn phím thay vì bị che.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

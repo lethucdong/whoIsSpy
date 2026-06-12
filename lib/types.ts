@@ -49,6 +49,15 @@ export interface VoteState {
   targetId: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  name: string;
+  avatar: string;
+  text: string;
+  ts: number; // epoch ms
+}
+
 export interface RoundResult {
   round: number;
   eliminatedId: string | null;
