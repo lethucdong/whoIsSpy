@@ -25,9 +25,10 @@ export interface RemotePeer {
 /**
  * Cuộc gọi video nhóm theo mô hình mesh (mỗi người kết nối trực tiếp tới
  * tất cả người khác). Socket.io đóng vai trò signaling.
- * Bật/tắt qua `active`.
+ * Bật/tắt qua `active`. Truyền `initialStream` để tái dùng stream đã xin
+ * quyền trong user-gesture (tránh lỗi NotAllowedError trên iOS Safari).
  */
-export function useWebRTC(active: boolean) {
+export function useWebRTC(active: boolean, initialStream?: MediaStream | null) {
   const { socket } = useSocket();
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [peers, setPeers] = useState<Record<string, RemotePeer>>({});
@@ -37,6 +38,9 @@ export function useWebRTC(active: boolean) {
 
   const peersRef = useRef<Record<string, PeerEntry>>({});
   const localRef = useRef<MediaStream | null>(null);
+  // Giữ ref tới initialStream để không cần đưa vào dependency array.
+  const initialStreamRef = useRef<MediaStream | null | undefined>(initialStream);
+  initialStreamRef.current = initialStream;
 
   const upsertPeer = useCallback(
     (id: string, patch: Partial<RemotePeer>) => {
@@ -114,12 +118,16 @@ export function useWebRTC(active: boolean) {
 
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
-          audio: { echoCancellation: true, noiseSuppression: true },
-        });
+        // Ưu tiên dùng stream đã được cấp quyền trong user-gesture (iOS Safari).
+        const provided = initialStreamRef.current;
+        const stream = provided
+          ? provided
+          : await navigator.mediaDevices.getUserMedia({
+              video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
+              audio: { echoCancellation: true, noiseSuppression: true },
+            });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          if (!provided) stream.getTracks().forEach((t) => t.stop());
           return;
         }
         localRef.current = stream;
@@ -134,9 +142,18 @@ export function useWebRTC(active: boolean) {
           }
         );
       } catch (err) {
-        setError(
-          "Không truy cập được camera/micro. Hãy cấp quyền trong trình duyệt và thử lại."
-        );
+        const e = err as DOMException;
+        if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+          setError(
+            "Quyền bị từ chối. Trên iPhone: Cài đặt → Safari → Camera & Micrô → Cho phép, rồi tải lại trang."
+          );
+        } else if (e.name === "NotFoundError") {
+          setError("Không tìm thấy camera hoặc micro trên thiết bị.");
+        } else if (e.name === "NotReadableError") {
+          setError("Camera/micro đang được ứng dụng khác sử dụng.");
+        } else {
+          setError("Không truy cập được camera/micro. Hãy thử lại.");
+        }
       }
     })();
 

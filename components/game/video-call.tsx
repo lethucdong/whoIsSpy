@@ -27,10 +27,44 @@ function VideoTile({
 
   useEffect(() => {
     const el = ref.current;
-    if (el && stream && el.srcObject !== stream) {
+    if (!el || !stream) return;
+    if (el.srcObject !== stream) {
       el.srcObject = stream;
     }
-  }, [stream]);
+    // iOS/Android cần set tường minh để autoplay video stream:
+    // React không set HTML attribute `muted` qua prop, chỉ set property
+    // → autoplay có thể bị chặn. Ép qua JS để chắc chắn.
+    el.muted = !!muted;
+    el.playsInline = true;
+    el.setAttribute("playsinline", "");
+    el.setAttribute("webkit-playsinline", "");
+
+    let unlock: (() => void) | null = null;
+    const tryPlay = () => el.play().catch(() => {
+      // Lần đầu fail (autoplay chặn) → đợi user chạm 1 lần rồi play.
+      unlock = () => {
+        el.play().catch(() => {});
+        if (unlock) {
+          window.removeEventListener("touchend", unlock);
+          window.removeEventListener("click", unlock);
+          unlock = null;
+        }
+      };
+      window.addEventListener("touchend", unlock);
+      window.addEventListener("click", unlock);
+    });
+    if (el.readyState >= 2) tryPlay();
+    else el.onloadedmetadata = tryPlay;
+
+    return () => {
+      el.onloadedmetadata = null;
+      if (unlock) {
+        window.removeEventListener("touchend", unlock);
+        window.removeEventListener("click", unlock);
+        unlock = null;
+      }
+    };
+  }, [stream, muted]);
 
   return (
     <div
@@ -44,6 +78,9 @@ function VideoTile({
         autoPlay
         playsInline
         muted={muted}
+        // defaultMuted đảm bảo HTML attribute `muted` xuất hiện ngay từ markup
+        // — quan trọng cho autoplay trên iOS Safari.
+        {...(muted ? { defaultMuted: true } : {})}
         className={cn(
           "h-full w-full object-cover",
           (camOff || !stream) && "opacity-0"
@@ -73,15 +110,17 @@ export function VideoCall({
   room,
   meName,
   meAvatar,
+  initialStream,
 }: {
   active: boolean;
   onClose: () => void;
   room: RoomState;
   meName: string;
   meAvatar: string;
+  initialStream?: MediaStream | null;
 }) {
   const { localStream, peers, micOn, camOn, error, toggleMic, toggleCam } =
-    useWebRTC(active);
+    useWebRTC(active, initialStream);
 
   // Tra tên/avatar theo playerId của peer.
   const nameOf = (p: RemotePeer) => {

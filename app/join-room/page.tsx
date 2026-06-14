@@ -72,17 +72,17 @@ function JoinInner() {
           Nhập mã 5 ký tự để tham gia phòng cùng cả hội
         </p>
 
-        {/* Ô hiển thị mã (bấm để gõ) */}
-        <button
+        {/* Ô hiển thị mã — input trong suốt phủ toàn bộ để mobile focus đúng */}
+        <div
+          className="relative inline-flex gap-2 cursor-text"
           onClick={() => inputRef.current?.focus()}
-          className="flex gap-2"
           aria-label="Nhập mã phòng"
         >
           {chars.map((ch, i) => (
             <div
               key={i}
               className={cn(
-                "flex h-16 w-12 items-center justify-center rounded-2xl border-2 text-2xl font-extrabold tabular-nums transition",
+                "pointer-events-none flex h-16 w-12 items-center justify-center rounded-2xl border-2 text-2xl font-extrabold tabular-nums transition",
                 ch.trim()
                   ? "border-primary bg-primary/10 text-text"
                   : "border-border bg-card-soft/40 text-faint",
@@ -93,23 +93,26 @@ function JoinInner() {
               {ch.trim() || ""}
             </div>
           ))}
-        </button>
-
-        <input
-          ref={inputRef}
-          value={code}
-          onChange={(e) => {
-            const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, LEN);
-            setCode(v);
-            if (v.length === LEN) handleJoin(v);
-          }}
-          inputMode="text"
-          autoCapitalize="characters"
-          autoComplete="off"
-          maxLength={LEN}
-          className="absolute h-0 w-0 opacity-0"
-          autoFocus
-        />
+          {/* Input phủ toàn bộ vùng ô mã — có kích thước thật để mobile hiện bàn phím */}
+          <input
+            ref={inputRef}
+            value={code}
+            onChange={(e) => {
+              const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, LEN);
+              setCode(v);
+              if (v.length === LEN) handleJoin(v);
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }}
+            inputMode="text"
+            autoCapitalize="characters"
+            autoComplete="off"
+            enterKeyHint="go"
+            maxLength={LEN}
+            className="absolute inset-0 h-full w-full cursor-text opacity-0"
+            autoFocus
+            aria-label="Mã phòng"
+          />
+        </div>
 
         <div className="mt-3 flex items-center gap-2 text-xs text-faint">
           <Avatar emoji={player?.avatar ?? "🦊"} size="sm" />
