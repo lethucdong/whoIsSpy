@@ -12,8 +12,7 @@ const beVietnam = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  // title: "AI Là Gián Điệp? — Game suy luận cho hội bạn",
-  title: "Big query",
+  title: "AI Là Gián Điệp? — Game suy luận cho hội bạn",
   description:
     "Trò chơi suy luận multiplayer: tìm ra gián điệp ẩn mình trước khi quá muộn. Tạo phòng, mời bạn bằng link, chơi ngay trên điện thoại.",
   applicationName: "AI Là Gián Điệp?",

@@ -47,28 +47,72 @@ export function CommsDock({
     setPermError(null);
     setStarting(true);
     try {
-      const s = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
-        audio: { echoCancellation: true, noiseSuppression: true },
-      });
+      // 1) Secure-context check: iOS Safari/Chrome ẨN navigator.mediaDevices
+      //    trên http:// non-localhost → gọi thẳng sẽ ném TypeError.
+      const isLocalhost =
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1" ||
+        location.hostname === "[::1]";
+      if (!window.isSecureContext && !isLocalhost) {
+        setPermError(
+          `Cần HTTPS để dùng camera/micro trên mobile. Hãy truy cập qua https:// (đang là ${location.protocol}//${location.host}).`
+        );
+        return;
+      }
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setPermError(
+          "Trình duyệt không hỗ trợ camera/micro. Hãy thử Safari (iOS) / Chrome (Android) phiên bản mới."
+        );
+        return;
+      }
+
+      // 2) Thử full constraints; nếu OverConstrained → retry nới lỏng.
+      const tryGetMedia = (constraints: MediaStreamConstraints) =>
+        navigator.mediaDevices.getUserMedia(constraints);
+
+      let s: MediaStream;
+      try {
+        s = await tryGetMedia({
+          video: { width: { ideal: 480 }, height: { ideal: 360 }, facingMode: "user" },
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+      } catch (err) {
+        const e = err as DOMException;
+        if (e.name === "OverconstrainedError" || e.name === "ConstraintNotSatisfiedError") {
+          // Bỏ facingMode + size để máy chỉ có cam sau / cam yếu vẫn dùng được.
+          s = await tryGetMedia({ video: true, audio: true });
+        } else {
+          throw err;
+        }
+      }
+
       grantedStreamRef.current = s;
       setGrantedStream(s);
       setPermDialog(false);
       setCallOn(true);
     } catch (err) {
       const e = err as DOMException;
-      if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+      const name = e?.name || "UnknownError";
+      const msg = e?.message || String(err);
+      if (name === "NotAllowedError" || name === "PermissionDeniedError") {
         setPermError(
-          typeof window !== "undefined" && location.protocol !== "https:"
-            ? "Cần HTTPS để dùng camera/micro. Hãy truy cập qua https://."
-            : "Quyền bị từ chối. Trên iPhone: Cài đặt → Safari → Camera & Micrô → Cho phép, rồi tải lại trang."
+          "Quyền bị từ chối. Trên iPhone: Cài đặt → Safari → Camera & Micrô → Cho phép, rồi tải lại trang."
         );
-      } else if (e.name === "NotFoundError") {
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
         setPermError("Không tìm thấy camera hoặc micro trên thiết bị.");
-      } else if (e.name === "NotReadableError") {
-        setPermError("Camera/micro đang được ứng dụng khác sử dụng.");
+      } else if (name === "NotReadableError" || name === "TrackStartError") {
+        setPermError(
+          "Camera/micro đang được ứng dụng khác sử dụng (Zoom, FaceTime, camera khác...). Hãy đóng app đó rồi thử lại."
+        );
+      } else if (name === "SecurityError") {
+        setPermError("Trang không secure. Hãy truy cập qua https://.");
+      } else if (name === "TypeError" || err instanceof TypeError) {
+        setPermError(
+          "Trình duyệt không cho phép camera trên kết nối này. Cần HTTPS hoặc localhost."
+        );
       } else {
-        setPermError("Không truy cập được camera/micro. Hãy thử lại.");
+        // Hiện thẳng tên lỗi để debug trên mobile (không có console).
+        setPermError(`Không truy cập được camera/micro (${name}: ${msg}).`);
       }
     } finally {
       setStarting(false);
